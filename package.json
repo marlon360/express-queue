@@ -19,5 +19,9 @@
   },
   "dependencies": {
     "queue": "^6.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marlon360/express-queue.git"
   }
 }
