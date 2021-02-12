@@ -1,5 +1,5 @@
 {
-  "name": "express-queue",
+  "name": "@marlon360/express-queue",
   "version": "1.0.0",
   "description": "Express middleware to limit the number of simultaneously processing requests using queue",
   "main": "dist/index.js",
