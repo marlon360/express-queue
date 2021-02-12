@@ -1,0 +1,22 @@
+{
+  "name": "express-queue",
+  "version": "1.0.0",
+  "description": "Queue Express requests.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Marlon Lückert<m.lueckert@me.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.17.11",
+    "axios": "^0.21.1",
+    "typescript": "^4.1.5",
+    "express": "^4.17.1"
+  },
+  "dependencies": {
+    "queue": "^6.0.2"
+  }
+}
