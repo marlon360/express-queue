@@ -22,9 +22,6 @@ function createExpressJob(data: JobData): QueueWorker {
       data.res.once('end', function () {     // `end` event is sent on res.end() by `express-end` middleware package
         return resolve(true)
       });
-      data.res.once('close', function () {
-        return resolve(false)
-      });
       data.next()
     })
   }
@@ -50,6 +47,16 @@ export const expressQueueMiddleware = function (config?: Options) {
     const data = { res: res, next: next };
     const job = createExpressJob(data)
     q.push(job)
+
+    // when client closes the connection
+    res.once('close', function () {
+      // check if job is still queued
+      const jobIndex = q.indexOf(job)
+      if (jobIndex > -1) {
+        // remove from queue
+        q.splice(jobIndex)
+      }
+    });
   
   };
 
