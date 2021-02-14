@@ -5,7 +5,7 @@ import expressQueueMiddleware from "../index"
 const app = express()
 const port = 3000
 
-app.use(expressQueueMiddleware({concurrency: 1}))
+app.use(expressQueueMiddleware({activeLimit: 1}))
 
 app.get('/', (req: Request, res: ExpressResponse) => {
   setTimeout(() => {

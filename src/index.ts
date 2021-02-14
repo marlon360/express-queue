@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
-import queue, { Options, QueueWorker, QueueWorkerCallback } from 'queue'
 import { endMiddleware } from './end-middleware'
+import MiniQueue from 'mini-queue'
 
 /**
  * Data that is needed for the job in the queue
@@ -11,29 +11,26 @@ interface JobData {
 }
 
 /**
- * This method creates the job for the queue.
- * 
- * @param data The Express Response and Next object
+ * Settings for the queue
  */
-
-function createExpressJob(data: JobData): QueueWorker {
-  return (callback?: QueueWorkerCallback) => {
-    return new Promise<boolean>((resolve, reject) => {
-      data.res.once('end', function () {     // `end` event is sent on res.end() by `express-end` middleware package
-        return resolve(true)
-      });
-      data.next()
-    })
-  }
+interface QueueSettings {
+  activeLimit?: number,
+  queuedLimit?: number
 }
 
-export const expressQueueMiddleware = function (config?: Options) {
+export const expressQueueMiddleware = function (config: QueueSettings = {}) {
 
   /**
-   * Initialize new queue and enable autostart
+   * Initialize new queue
    */
-  const q = queue(config);
-  q.autostart = true
+  const q = new MiniQueue(config)
+
+  q.on('process', (job: { data: JobData }, done: any) => {
+    job.data.res.once('end', function () {     // `end` event is sent on res.end() by `express-end` middleware package
+      return done()
+    });
+    job.data.next()
+  })
 
   /**
    * This middleware takes the request data and adds them to the queue
@@ -43,21 +40,17 @@ export const expressQueueMiddleware = function (config?: Options) {
    * @param next Express Next Function
    */
   const queueMiddleware = function (req: Request, res: Response, next: NextFunction) {
-    
-    const data = { res: res, next: next };
-    const job = createExpressJob(data)
-    q.push(job)
 
-    // when client closes the connection
+    const data = { res: res, next: next };
+    const job = q.createJob(data);
+
+    // Handle disconnect from client while in queue
     res.once('close', function () {
-      // check if job is still queued
-      const jobIndex = q.indexOf(job)
-      if (jobIndex > -1) {
-        // remove from queue
-        q.splice(jobIndex)
+      if (job.status === 'queue') {
+        q._cancelJob(job);
       }
     });
-  
+
   };
 
   /**
